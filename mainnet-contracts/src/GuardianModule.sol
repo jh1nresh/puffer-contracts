@@ -2,6 +2,8 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import { AccessManaged } from "@openzeppelin/contracts/access/manager/AccessManaged.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IGuardianModule } from "./interface/IGuardianModule.sol";
 import { IEnclaveVerifier } from "./EnclaveVerifier.sol";
 import { RaveEvidence } from "./struct/RaveEvidence.sol";
@@ -25,6 +27,7 @@ contract GuardianModule is AccessManaged, IGuardianModule {
     using Address for address payable;
     using MessageHashUtils for bytes32;
     using EnumerableSet for EnumerableSet.AddressSet;
+    using SafeERC20 for IERC20;
 
     /**
      * @dev Uncompressed ECDSA keys are 65 bytes long
@@ -45,6 +48,11 @@ contract GuardianModule is AccessManaged, IGuardianModule {
      * @dev Guardians set
      */
     EnumerableSet.AddressSet private _guardians;
+
+    /**
+     * @dev List of allowed tokens to be distributed via splitGuardianFunds
+     */
+    EnumerableSet.AddressSet private _allowedTokens;
 
     /**
      * @dev Threshold for the guardians
@@ -80,10 +88,13 @@ contract GuardianModule is AccessManaged, IGuardianModule {
      */
     mapping(address guardian => GuardianData data) internal _guardianEnclaves;
 
-    constructor(IEnclaveVerifier verifier, address[] memory guardians, uint256 threshold, address pufferAuthority)
-        payable
-        AccessManaged(pufferAuthority)
-    {
+    constructor(
+        IEnclaveVerifier verifier,
+        address[] memory guardians,
+        uint256 threshold,
+        address pufferAuthority,
+        address pufETH
+    ) payable AccessManaged(pufferAuthority) {
         if (address(verifier) == address(0)) {
             revert InvalidAddress();
         }
@@ -96,6 +107,7 @@ contract GuardianModule is AccessManaged, IGuardianModule {
         }
         _setEjectionThreshold(_EJECTION_THRESHOLD_BALANCE);
         _setThreshold(threshold);
+        _addAllowedToken(pufETH);
     }
 
     receive() external payable { }
@@ -107,15 +119,32 @@ contract GuardianModule is AccessManaged, IGuardianModule {
      *      No need for reentrancy checks because guardians are expected to be EOA's accounts
      */
     function splitGuardianFunds() public {
-        uint256 numGuardians = _guardians.length();
+        address[] memory guardians = _guardians.values();
+        uint256 numGuardians = guardians.length;
+
+        // ETH
 
         uint256 amountPerGuardian = address(this).balance / numGuardians;
 
         for (uint256 i = 0; i < numGuardians; ++i) {
             // slither-disable-start reentrancy-unlimited-gas
             // slither-disable-next-line calls-loop
-            payable(_guardians.at(i)).sendValue(amountPerGuardian);
+            payable(guardians[i]).sendValue(amountPerGuardian);
             // slither-disable-end reentrancy-unlimited-gas
+        }
+
+        // ERC20 tokens
+        uint256 allowedTokensLength = _allowedTokens.length();
+        for (uint256 i = 0; i < allowedTokensLength; ++i) {
+            address token = _allowedTokens.at(i);
+            uint256 tokenBalance = IERC20(token).balanceOf(address(this));
+            uint256 tokenAmountPerGuardian = tokenBalance / numGuardians;
+            for (uint256 j = 0; j < numGuardians; ++j) {
+                // slither-disable-start reentrancy-unlimited-gas
+                // slither-disable-next-line calls-loop
+                IERC20(token).safeTransfer(guardians[j], tokenAmountPerGuardian);
+                // slither-disable-end reentrancy-unlimited-gas
+            }
         }
     }
 
@@ -278,6 +307,31 @@ contract GuardianModule is AccessManaged, IGuardianModule {
      * @inheritdoc IGuardianModule
      * @dev Restricted to the DAO
      */
+    function addAllowedToken(address token) external restricted {
+        splitGuardianFunds();
+        _addAllowedToken(token);
+    }
+
+    /**
+     * @inheritdoc IGuardianModule
+     * @dev Restricted to the DAO
+     */
+    function removeAllowedToken(address token) external restricted {
+        if (token == address(0)) {
+            revert InvalidAddress();
+        }
+        bool success = _allowedTokens.remove(token);
+        if (!success) {
+            revert InvalidAddress();
+        }
+
+        emit AllowedTokenRemoved(token);
+    }
+
+    /**
+     * @inheritdoc IGuardianModule
+     * @dev Restricted to the DAO
+     */
     function setThreshold(uint256 newThreshold) external restricted {
         _setThreshold(newThreshold);
     }
@@ -410,6 +464,18 @@ contract GuardianModule is AccessManaged, IGuardianModule {
         }
 
         emit GuardianAdded(newGuardian);
+    }
+
+    function _addAllowedToken(address token) internal {
+        if (token == address(0)) {
+            revert InvalidAddress();
+        }
+        bool success = _allowedTokens.add(token);
+        if (!success) {
+            revert InvalidAddress();
+        }
+
+        emit AllowedTokenAdded(token);
     }
 
     function _setThreshold(uint256 newThreshold) internal {

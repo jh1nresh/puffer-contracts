@@ -9,7 +9,7 @@ import { GuardiansDeployment } from "./DeploymentStructs.sol";
 
 // forge script script/1_DeployGuardians.s.sol:DeployGuardians --rpc-url=$EPHEMERY_RPC_URL --sig 'run(address[] calldata, uint256)' "[0xDDDeAfB492752FC64220ddB3E7C9f1d5CcCdFdF0]" 1
 contract DeployGuardians is BaseScript {
-    function run(AccessManager accessManager, address[] calldata guardians, uint256 threshold)
+    function run(AccessManager accessManager, address[] calldata guardians, uint256 threshold, address pufferVault)
         public
         broadcast
         returns (GuardiansDeployment memory)
@@ -20,7 +20,7 @@ contract DeployGuardians is BaseScript {
 
         EnclaveVerifier verifier = new EnclaveVerifier(_freshnessBlocks, address(accessManager));
 
-        GuardianModule module = new GuardianModule(verifier, guardians, threshold, address(accessManager));
+        GuardianModule module = new GuardianModule(verifier, guardians, threshold, address(accessManager), pufferVault);
 
         GuardiansDeployment memory deployment;
         deployment.accessManager = address(accessManager);

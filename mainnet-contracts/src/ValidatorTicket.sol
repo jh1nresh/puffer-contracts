@@ -55,11 +55,6 @@ contract ValidatorTicket is
     IPufferOracle public immutable override PUFFER_ORACLE;
 
     /**
-     * @inheritdoc IValidatorTicket
-     */
-    address public immutable override OPERATIONS_MULTISIG;
-
-    /**
      * @dev Basis point scale
      */
     uint256 private constant _BASIS_POINT_SCALE = 1e4;
@@ -73,12 +68,11 @@ contract ValidatorTicket is
         address payable guardianModule,
         address payable treasury,
         address payable pufferVault,
-        IPufferOracle pufferOracle,
-        address operationsMultisig
+        IPufferOracle pufferOracle
     ) {
         if (
             guardianModule == address(0) || treasury == address(0) || pufferVault == address(0)
-                || address(pufferOracle) == address(0) || operationsMultisig == address(0)
+                || address(pufferOracle) == address(0)
         ) {
             revert InvalidData();
         }
@@ -86,7 +80,6 @@ contract ValidatorTicket is
         GUARDIAN_MODULE = guardianModule;
         PUFFER_VAULT = pufferVault;
         TREASURY = treasury;
-        OPERATIONS_MULTISIG = operationsMultisig;
         _disableInitializers();
     }
 
@@ -289,7 +282,7 @@ contract ValidatorTicket is
         ValidatorTicket storage $ = _getValidatorTicketStorage();
 
         uint256 treasuryAmount = _sendPufETH(TREASURY, pufEthUsed, $.protocolFeeRate);
-        uint256 guardiansAmount = _sendPufETH(OPERATIONS_MULTISIG, pufEthUsed, $.guardiansFeeRate);
+        uint256 guardiansAmount = _sendPufETH(GUARDIAN_MODULE, pufEthUsed, $.guardiansFeeRate);
         uint256 burnAmount = pufEthUsed - (treasuryAmount + guardiansAmount);
 
         PufferVaultV5(PUFFER_VAULT).burn(burnAmount);

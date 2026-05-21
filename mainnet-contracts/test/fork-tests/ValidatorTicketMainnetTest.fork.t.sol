@@ -57,7 +57,6 @@ contract ValidatorTicketMainnetTest is MainnetForkTestHelper {
         assertTrue(validatorTicket.GUARDIAN_MODULE() != address(0));
         assertTrue(validatorTicket.PUFFER_VAULT() != address(0));
         assertTrue(validatorTicket.TREASURY() != address(0));
-        assertTrue(validatorTicket.OPERATIONS_MULTISIG() != address(0));
     }
 
     function test_purchase_validator_ticket_with_pufeth() public {
@@ -86,7 +85,7 @@ contract ValidatorTicketMainnetTest is MainnetForkTestHelper {
         uint256 vtAmount = 2000 ether;
         address recipient = dave;
         address treasury = validatorTicket.TREASURY();
-        address operationsMultisig = validatorTicket.OPERATIONS_MULTISIG();
+        address guardianModule = validatorTicket.GUARDIAN_MODULE();
 
         uint256 vtPrice = IPufferOracle(address(validatorTicket.PUFFER_ORACLE())).getValidatorTicketPrice();
         uint256 requiredETH = vtAmount.mulDiv(vtPrice, 1 ether, Math.Rounding.Ceil);
@@ -95,7 +94,7 @@ contract ValidatorTicketMainnetTest is MainnetForkTestHelper {
         deal(address(validatorTicket.PUFFER_VAULT()), recipient, pufEthAmount);
 
         uint256 initialTreasuryBalance = IERC20(validatorTicket.PUFFER_VAULT()).balanceOf(treasury);
-        uint256 initialOperationsMultisigBalance = IERC20(validatorTicket.PUFFER_VAULT()).balanceOf(operationsMultisig);
+        uint256 initialGuardianModuleBalance = IERC20(validatorTicket.PUFFER_VAULT()).balanceOf(guardianModule);
         uint256 initialBurnedAmount = IERC20(validatorTicket.PUFFER_VAULT()).totalSupply();
 
         vm.startPrank(recipient);
@@ -112,12 +111,12 @@ contract ValidatorTicketMainnetTest is MainnetForkTestHelper {
         assertEq(
             IERC20(validatorTicket.PUFFER_VAULT()).balanceOf(treasury) - initialTreasuryBalance,
             expectedTreasuryAmount,
-            "Treasury should receive 5% of pufETH"
+            "Treasury should receive 2% of pufETH"
         );
         assertEq(
-            IERC20(validatorTicket.PUFFER_VAULT()).balanceOf(operationsMultisig) - initialOperationsMultisigBalance,
+            IERC20(validatorTicket.PUFFER_VAULT()).balanceOf(guardianModule) - initialGuardianModuleBalance,
             expectedGuardianAmount,
-            "Operations Multisig should receive 0.5% of pufETH"
+            "Guardian Module should receive 0.5% of pufETH"
         );
         assertEq(
             initialBurnedAmount - IERC20(validatorTicket.PUFFER_VAULT()).totalSupply(),
