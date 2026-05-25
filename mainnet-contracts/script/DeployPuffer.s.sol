@@ -119,8 +119,7 @@ contract DeployPuffer is BaseScript {
             guardianModule: payable(guardiansDeployment.guardianModule),
             treasury: payable(treasury),
             pufferVault: payable(pufferVault),
-            pufferOracle: IPufferOracleV2(oracle),
-            operationsMultisig: operationsMultisig
+            pufferOracle: IPufferOracleV2(oracle)
         });
 
         NoImplementation(payable(address(validatorTicketProxy))).upgradeToAndCall(

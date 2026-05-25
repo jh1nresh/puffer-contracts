@@ -51,10 +51,11 @@ contract DeployEverything is BaseScript {
 
         GuardiansDeployment memory guardiansDeployment = new DeployGuardians().run(
             ISessionRegistry(sessionRegistry),
-            AccessManager(puffETHDeployment.accessManager),
             guardians,
             threshold,
-            freshnessBlocks
+            AccessManager(puffETHDeployment.accessManager),
+            freshnessBlocks,
+            address(deployment.pufferVault)
         );
 
         address pufferOracle = new DeployPufferOracle().run(

@@ -245,7 +245,7 @@ contract ValidatorTicketTest is UnitTestHelper {
         uint256 vtAmount = 2000 ether; // Want to mint 2000 VTs
         address recipient = actors[0];
         address treasury = validatorTicket.TREASURY();
-        address operationsMultisig = validatorTicket.OPERATIONS_MULTISIG();
+        address guardianModuleAddr = validatorTicket.GUARDIAN_MODULE();
 
         uint256 vtPrice = pufferOracle.getValidatorTicketPrice();
         uint256 requiredETH = vtAmount.mulDiv(vtPrice, 1 ether, Math.Rounding.Ceil);
@@ -255,7 +255,7 @@ contract ValidatorTicketTest is UnitTestHelper {
         _givePufETH(pufEthAmount, recipient);
 
         uint256 initialTreasuryBalance = pufferVault.balanceOf(treasury);
-        uint256 initialOpsMultisigBalance = pufferVault.balanceOf(operationsMultisig);
+        uint256 initialGuardianModuleBalance = pufferVault.balanceOf(guardianModuleAddr);
         uint256 initialBurnedAmount = pufferVault.totalSupply();
 
         vm.startPrank(recipient);
@@ -276,9 +276,9 @@ contract ValidatorTicketTest is UnitTestHelper {
             "Treasury should receive 5% of pufETH"
         );
         assertEq(
-            pufferVault.balanceOf(operationsMultisig) - initialOpsMultisigBalance,
+            pufferVault.balanceOf(guardianModuleAddr) - initialGuardianModuleBalance,
             expectedGuardianAmount,
-            "Operations Multisig should receive 0.5% of pufETH"
+            "Guardian Module should receive 0.5% of pufETH"
         );
         assertEq(
             initialBurnedAmount - pufferVault.totalSupply(), expectedBurnAmount, "Remaining pufETH should be burned"

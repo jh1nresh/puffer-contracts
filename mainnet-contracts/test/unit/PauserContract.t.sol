@@ -38,9 +38,7 @@ contract PauserContractTest is Test {
 
         // Grant the PauserContract permission to act as the Timelock's pauserMultisig
         vm.prank(timelock.COMMUNITY_MULTISIG());
-        timelock.executeTransaction(
-            address(timelock), abi.encodeCall(Timelock.setPauser, (address(pauserContract))), 1
-        );
+        timelock.executeTransaction(address(timelock), abi.encodeCall(Timelock.setPauser, (address(pauserContract))), 1);
 
         // Wire up AccessManager so `pauser` can call pause / pauseSelectors on the PauserContract
         bytes4[] memory selectors = new bytes4[](2);
@@ -102,8 +100,7 @@ contract PauserContractTest is Test {
         vm.prank(pauser);
         pauserContract.pause(targets);
 
-        (canCall,) =
-            accessManager.canCall(caller, address(pufferDepositor), PufferDepositor.swapAndDeposit.selector);
+        (canCall,) = accessManager.canCall(caller, address(pufferDepositor), PufferDepositor.swapAndDeposit.selector);
         assertFalse(canCall, "swapAndDeposit should be paused");
 
         (canCall,) =
@@ -144,9 +141,7 @@ contract PauserContractTest is Test {
     function test_pause_revertsIfNotTimelockPauser() public {
         // Replace PauserContract on the Timelock with a different address so the forwarded call fails
         vm.prank(timelock.COMMUNITY_MULTISIG());
-        timelock.executeTransaction(
-            address(timelock), abi.encodeCall(Timelock.setPauser, (makeAddr("otherPauser"))), 2
-        );
+        timelock.executeTransaction(address(timelock), abi.encodeCall(Timelock.setPauser, (makeAddr("otherPauser"))), 2);
 
         address[] memory targets = new address[](1);
         targets[0] = address(pufferDepositor);

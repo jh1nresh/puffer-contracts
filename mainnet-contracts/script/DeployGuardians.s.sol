@@ -12,15 +12,16 @@ import { ISessionRegistry } from
 contract DeployGuardians is BaseScript {
     function run(
         ISessionRegistry sessionRegistry,
-        AccessManager accessManager,
         address[] calldata guardians,
         uint256 threshold,
-        uint256 freshnessBlocks
+        AccessManager accessManager,
+        uint256 freshnessBlocks,
+        address pufferVault
     ) public broadcast returns (GuardiansDeployment memory) {
         vm.label(address(accessManager), "AccessManager");
 
         GuardianModule module =
-            new GuardianModule(sessionRegistry, guardians, threshold, address(accessManager), freshnessBlocks);
+            new GuardianModule(sessionRegistry, guardians, threshold, address(accessManager), freshnessBlocks, pufferVault);
 
         GuardiansDeployment memory deployment;
         deployment.accessManager = address(accessManager);

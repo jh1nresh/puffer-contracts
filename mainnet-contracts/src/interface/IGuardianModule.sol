@@ -102,6 +102,18 @@ interface IGuardianModule {
     error StaleEvidence();
 
     /**
+     * @notice Emitted when a new token is added to the allowed tokens list
+     * @dev Signature "0xf849d00bc67e9e4bf072df9680646c59b8c5380160834c2e1d4896ce5ec81f75"
+     */
+    event AllowedTokenAdded(address token);
+
+    /**
+     * @notice Emitted when a token is removed from the allowed tokens list
+     * @dev Signature "0xbf996b4fd74f0c7159bb017b1db415b0d9a6f13129f46d0b93309d170b78df31"
+     */
+    event AllowedTokenRemoved(address token);
+
+    /**
      * @notice Returns the enclave address registered to `guardian`
      */
     function getGuardiansEnclaveAddress(address guardian) external view returns (address);
@@ -201,6 +213,20 @@ interface IGuardianModule {
      * @param guardian The address of the guardian to remove
      */
     function removeGuardian(address guardian) external;
+
+    /**
+     * @notice Adds a new token to the allowed tokens list
+     * @dev Restricted to the DAO
+     * @param token The address of the new token to add
+     */
+    function addAllowedToken(address token) external;
+
+    /**
+     * @notice Removes a token from the allowed tokens list
+     * @dev Restricted to the DAO
+     * @param token The address of the token to remove
+     */
+    function removeAllowedToken(address token) external;
 
     /**
      * @notice Changes the threshold value for the guardian signatures
