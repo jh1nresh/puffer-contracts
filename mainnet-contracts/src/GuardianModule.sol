@@ -136,7 +136,8 @@ contract GuardianModule is AccessManaged, IGuardianModule {
         external
         view
     {
-        bytes32 signedMessageHash = LibGuardianMessages._getSkipProvisioningMessage(moduleName, skippedIndex);
+        bytes32 signedMessageHash =
+            LibGuardianMessages._getSkipProvisioningMessage(address(this), moduleName, skippedIndex);
 
         // Check the signatures
         bool validSignatures =
@@ -160,6 +161,7 @@ contract GuardianModule is AccessManaged, IGuardianModule {
     ) external view {
         // Recreate the message hash
         bytes32 signedMessageHash = LibGuardianMessages._getBeaconDepositMessageToBeSigned({
+            verifyingContract: address(this),
             pufferModuleIndex: pufferModuleIndex,
             pubKey: pubKey,
             signature: signature,
@@ -185,7 +187,7 @@ contract GuardianModule is AccessManaged, IGuardianModule {
         external
         view
     {
-        bytes32 signedMessageHash = LibGuardianMessages._getHandleBatchWithdrawalMessage(validatorInfos);
+        bytes32 signedMessageHash = LibGuardianMessages._getHandleBatchWithdrawalMessage(address(this), validatorInfos);
 
         // Check the signatures
         bool validSignatures =
@@ -206,7 +208,7 @@ contract GuardianModule is AccessManaged, IGuardianModule {
     ) external view {
         // Recreate the message hash
         bytes32 signedMessageHash =
-            LibGuardianMessages._getSetNumberOfValidatorsMessage(newNumberOfValidators, epochNumber);
+            LibGuardianMessages._getSetNumberOfValidatorsMessage(address(this), newNumberOfValidators, epochNumber);
 
         // Check the signatures
         bool validSignatures =
