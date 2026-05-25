@@ -1259,7 +1259,7 @@ contract PufferProtocolTest is UnitTestHelper {
         StoppedValidatorInfo[] memory stopInfos = new StoppedValidatorInfo[](1);
         stopInfos[0] = aliceInfo;
 
-        uint256 burnedAmount = pufferVault.convertToShares(1 ether); // 1 ETH to pufETH. This is the bond, the max that can be burned
+        uint256 burnedAmount = pufferVault.convertToShares(2 ether); // 2 ETH to pufETH. This is the bond, the max that can be burned
 
         vm.expectEmit(true, true, true, true);
         emit IPufferProtocol.ValidatorExited(
