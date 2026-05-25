@@ -8,7 +8,7 @@ import { Unauthorized, InvalidAddress } from "../../src/Errors.sol";
 import { SessionRegistryMock } from "../mocks/SessionRegistryMock.sol";
 import { ALGO_ID_ES256K } from "@automata-network/automata-tee-workload-measurement/types/Constants.sol";
 import { LibKey } from "@automata-network/automata-tee-workload-measurement/lib/LibKey.sol";
-import { ISessionRegistry, InvalidAddress } from
+import { ISessionRegistry } from
     "@automata-network/automata-tee-workload-measurement/interfaces/registries/ISessionRegistry.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IAccessManaged } from "@openzeppelin/contracts/access/manager/IAccessManaged.sol";
@@ -53,22 +53,43 @@ contract GuardianModuleTest is UnitTestHelper {
 
         // invalid session registry
         vm.expectRevert(InvalidAddress.selector);
-        new GuardianModule(ISessionRegistry(address(0)), guardians, 1, authority, FRESHNESS_BLOCKS);
+        new GuardianModule(
+            ISessionRegistry(address(0)), guardians, 1, authority, FRESHNESS_BLOCKS, address(pufferVault)
+        );
 
         // invalid authority
         vm.expectRevert(InvalidAddress.selector);
-        new GuardianModule(ISessionRegistry(address(sessionRegistryMock)), guardians, 1, address(0), FRESHNESS_BLOCKS);
+        new GuardianModule(
+            ISessionRegistry(address(sessionRegistryMock)),
+            guardians,
+            1,
+            address(0),
+            FRESHNESS_BLOCKS,
+            address(pufferVault)
+        );
 
         // empty guardians
         address[] memory emptyGuardians = new address[](1);
         vm.expectRevert(InvalidAddress.selector);
         new GuardianModule(
-            ISessionRegistry(address(sessionRegistryMock)), emptyGuardians, 1, authority, FRESHNESS_BLOCKS
+            ISessionRegistry(address(sessionRegistryMock)),
+            emptyGuardians,
+            1,
+            authority,
+            FRESHNESS_BLOCKS,
+            address(pufferVault)
         );
 
         // invalid threshold
         vm.expectRevert(abi.encodeWithSelector(IGuardianModule.InvalidThreshold.selector, 0));
-        new GuardianModule(ISessionRegistry(address(sessionRegistryMock)), guardians, 0, authority, FRESHNESS_BLOCKS);
+        new GuardianModule(
+            ISessionRegistry(address(sessionRegistryMock)),
+            guardians,
+            0,
+            authority,
+            FRESHNESS_BLOCKS,
+            address(pufferVault)
+        );
     }
 
     function test_setup() public view {
