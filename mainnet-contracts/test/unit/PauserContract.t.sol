@@ -12,9 +12,9 @@ import { IAccessManaged } from "@openzeppelin/contracts/access/manager/IAccessMa
 import { PufferDeployment } from "src/structs/PufferDeployment.sol";
 import { DeployPufETH } from "script/DeployPufETH.s.sol";
 import { UUPSUpgradeable } from "@openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { ROLE_ID_PAUSER } from "script/Roles.sol";
 
 contract PauserContractTest is Test {
-    uint64 constant ROLE_ID_PAUSER = 999;
 
     PufferDepositor public pufferDepositor;
     PufferVaultV5 public pufferVault;
