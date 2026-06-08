@@ -20,8 +20,8 @@ import { RestakingOperatorController } from "../../src/RestakingOperatorControll
 
 contract PufferModuleManagerSlasherIntegrationTest is Test, DeployerHelper {
     PufferModuleManager public pufferModuleManager;
-    address PUFFER_MODULE_0_HOODI = 0x1086349d358fa589641e8a7440d46E5EE8A683C5;
-    address EIGENPOD_0_HOODI = 0x8F0b1e0B974C8b91D69C6A62E0710e3F497943e0;
+    address PUFFER_MODULE_0_HOODI = 0x1C898d25BC7B2819E8F0Af53A5a956F071f971fF;
+    address EIGENPOD_0_HOODI = 0xE7FDd7769f369cd1534Cb727A812Bce04553b24d;
     address RESTAKING_OPERATOR_0_HOODI = address(0); // TODO Change
     bytes32 PUFFER_MODULE_0_NAME = bytes32("PUFFER_MODULE_0");
 

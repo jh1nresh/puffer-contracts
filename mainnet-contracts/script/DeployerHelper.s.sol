@@ -201,8 +201,8 @@ abstract contract DeployerHelper is Script {
             // https://holesky.etherscan.io/address/0x0910310130d1c062DEF8B807528bdac80203BC66
             return 0x0910310130d1c062DEF8B807528bdac80203BC66;
         } else if (block.chainid == hoodi) {
-            // https://hoodi.etherscan.io/address/0xF3654e122850Da267F4FA674BF96B671FF8EA216
-            return 0xF3654e122850Da267F4FA674BF96B671FF8EA216;
+            // https://hoodi.etherscan.io/address/0x7c3593C2c80Fe45bcDa0A0D5052e8d87d9EE19De
+            return 0x7c3593C2c80Fe45bcDa0A0D5052e8d87d9EE19De;
         }
 
         revert("GuardianModule not available for this chain");
@@ -372,8 +372,8 @@ abstract contract DeployerHelper is Script {
             // https://holesky.etherscan.io/address/0x8e043ed3F06720615685D4978770Cd5C8fe90fe3
             return 0x8e043ed3F06720615685D4978770Cd5C8fe90fe3;
         } else if (block.chainid == hoodi) {
-            // https://hoodi.etherscan.io/address/0x6d62a3520E47530cb9c1887b9C7FA4e6c2164027
-            return 0x6d62a3520E47530cb9c1887b9C7FA4e6c2164027;
+            // https://hoodi.etherscan.io/address/0x202F5d2f852D0895c5E091B3A30614bc6b7e23c8
+            return 0x202F5d2f852D0895c5E091B3A30614bc6b7e23c8;
         }
 
         revert("puffer oracle not available for this chain");

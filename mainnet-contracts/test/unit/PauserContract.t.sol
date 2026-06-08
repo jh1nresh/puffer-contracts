@@ -15,7 +15,6 @@ import { UUPSUpgradeable } from "@openzeppelin-contracts-upgradeable/proxy/utils
 import { ROLE_ID_PAUSER } from "script/Roles.sol";
 
 contract PauserContractTest is Test {
-
     PufferDepositor public pufferDepositor;
     PufferVaultV5 public pufferVault;
     AccessManager public accessManager;
