@@ -224,6 +224,7 @@ contract PufferWithdrawalManager is
     /**
      * @inheritdoc IPufferWithdrawalManager
      * @dev Allows users to cancel their withdrawal requests and receive back pufETH
+     * @dev Restricted in this context is like the `whenNotPaused` modifier from Pausable.sol
      */
     function cancelWithdrawal(uint256 withdrawalIdx) external restricted {
         WithdrawalManagerStorage storage $ = _getWithdrawalManagerStorage();
