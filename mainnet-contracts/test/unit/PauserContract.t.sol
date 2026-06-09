@@ -24,6 +24,8 @@ contract PauserContractTest is Test {
 
     address public pauser = makeAddr("pauser");
 
+    address public constant BROADCASTER = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+
     function setUp() public {
         PufferDeployment memory deployment = new DeployPufETH().run();
 
@@ -57,6 +59,7 @@ contract PauserContractTest is Test {
 
     function test_pause_revertsIfCallerUnauthorized(address caller) public {
         vm.assume(caller != pauser);
+        vm.assume(caller != BROADCASTER);
 
         address[] memory targets = new address[](1);
         targets[0] = address(pufferDepositor);
@@ -68,6 +71,7 @@ contract PauserContractTest is Test {
 
     function test_pauseSelectors_revertsIfCallerUnauthorized(address caller) public {
         vm.assume(caller != pauser);
+        vm.assume(caller != BROADCASTER);
 
         address[] memory targets = new address[](1);
         targets[0] = address(pufferDepositor);
@@ -82,6 +86,10 @@ contract PauserContractTest is Test {
     }
 
     function test_pause_forwardsToTimelock(address caller) public {
+        vm.assume(caller != address(timelock));
+        vm.assume(caller != address(accessManager));
+        vm.assume(caller != BROADCASTER);
+
         address[] memory targets = new address[](1);
         targets[0] = address(pufferDepositor);
 
