@@ -110,14 +110,4 @@ jobs:
         run: 'forge coverage --no-match-coverage "(script|test|mock|node_modules|interface|integrations|echidna|L1RewardManagerUnsafe)" --no-match-contract "CarrotVestingTest" --report lcov -vvv --ir-minimum'
         env:
           ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
-          HOLESKY_RPC_URL: ${{ secrets.HOLESKY_RPC_URL }}
           HOODI_RPC_URL: ${{ secrets.HOODI_RPC_URL }}
-
-      - name: "Upload coverage report to Codecov"
-        uses: "codecov/codecov-action@v4"
-        with:
-          verbose: true
-          fail_ci_if_error: true
-          name: mainnet-contracts
-          files: "./lcov.info"
-          token: ${{ secrets.CODECOV_TOKEN }}

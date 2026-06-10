@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import { Test } from "forge-std/Test.sol";
+import { stdStorage, StdStorage } from "forge-std/StdStorage.sol";
 import { DeployerHelper } from "../../script/DeployerHelper.s.sol";
 import { DeployEverything } from "script/DeployEverything.s.sol";
 import { DeployEverything } from "script/DeployEverything.s.sol";
@@ -19,6 +20,8 @@ import { DeployRestakingOperatorController } from "../../script/DeployRestakingO
 import { RestakingOperatorController } from "../../src/RestakingOperatorController.sol";
 
 contract PufferModuleManagerSlasherIntegrationTest is Test, DeployerHelper {
+    using stdStorage for StdStorage;
+
     PufferModuleManager public pufferModuleManager;
     address PUFFER_MODULE_0_HOODI = 0x1C898d25BC7B2819E8F0Af53A5a956F071f971fF;
     address EIGENPOD_0_HOODI = 0xE7FDd7769f369cd1534Cb727A812Bce04553b24d;
@@ -29,7 +32,7 @@ contract PufferModuleManagerSlasherIntegrationTest is Test, DeployerHelper {
     DeployPufferModuleImplementation deployPufferModule;
     DeployRestakingOperator deployRestakingOperator;
 
-    uint32 START_BLOCK = 2409477; // Mar-13-2026 12:19:00 PM +UTC
+    uint32 START_BLOCK = 2980000; // Jun-09-2026 12:42:12 AM +UTC
 
     function setUp() public {
         vm.createSelectFork(vm.rpcUrl("hoodi"), START_BLOCK);
@@ -61,14 +64,49 @@ contract PufferModuleManagerSlasherIntegrationTest is Test, DeployerHelper {
         vm.label(pufferProtocol.getModuleAddress(PUFFER_MODULE_0_NAME), "PufferModule0");
     }
 
+    /**
+     * @dev On Hoodi, PufferModule0 has no restaked beacon-chain deposit shares at any block, so queueing a
+     * withdrawal against real fork state reverts with `SharesNegative()`. To keep these tests self-contained and
+     * block-independent, we credit the module with beacon-chain deposit shares by impersonating the
+     * DelegationManager (the only authorized caller of `addShares` on the EigenPodManager).
+     * @dev NOTE: the EigenPodManager deployed on Hoodi exposes `addShares(address,address,uint256)` (no token
+     * param), which differs from the local `IShareManager` interface, so we call it via a low-level call to
+     * match the on-chain ABI.
+     */
+    function _giveModuleBeaconChainShares(uint256 shares) internal {
+        vm.prank(_getDelegationManager());
+        (bool success,) = _getEigenPodManager().call(
+            abi.encodeWithSignature(
+                "addShares(address,address,uint256)", PUFFER_MODULE_0_HOODI, _getBeaconChainStrategy(), shares
+            )
+        );
+        require(success, "addShares failed");
+    }
+
+    /**
+     * @dev Completing a beacon-chain withdrawal as tokens pays out from the EigenPod's restaked balance, which is
+     * zero on Hoodi. We credit the pod's `withdrawableRestakedExecutionLayerGwei` accounting (via stdStorage, which
+     * self-verifies the slot) and fund the pod with matching ETH so the payout succeeds.
+     */
+    function _creditPodWithdrawableETH(uint256 amountWei) internal {
+        stdstore.target(EIGENPOD_0_HOODI).sig("withdrawableRestakedExecutionLayerGwei()").checked_write(
+            amountWei / 1 gwei
+        );
+        vm.deal(EIGENPOD_0_HOODI, amountWei);
+    }
+
     // Queue new withdrawals
     function test_new_queue_withdrawals() public {
+        _giveModuleBeaconChainShares(1 ether);
+
         vm.startPrank(_getPaymaster());
         pufferModuleManager.callQueueWithdrawals(PUFFER_MODULE_0_NAME, 0.1 ether);
     }
 
     // New withdrawal flow
     function test_queue_and_claim_withdrawals() public {
+        _giveModuleBeaconChainShares(1 ether);
+
         vm.startPrank(_getPaymaster());
 
         uint256 amount = 0.0001 ether;
@@ -98,6 +136,9 @@ contract PufferModuleManagerSlasherIntegrationTest is Test, DeployerHelper {
         receiveAsTokens[0] = true;
 
         vm.roll(START_BLOCK + 50 + 1); // on Hoodi its 50 blocks wait time, in Production it will be 14 days in blocks..
+
+        // Fund the EigenPod so it can pay out the withdrawal as tokens
+        _creditPodWithdrawableETH(amount);
 
         pufferModuleManager.callCompleteQueuedWithdrawals(PUFFER_MODULE_0_NAME, withdrawals, tokens, receiveAsTokens);
     }
