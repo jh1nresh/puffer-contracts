@@ -121,6 +121,7 @@ contract PauserContractTest is Test {
     function test_pauseSelectors_forwardsToTimelock(address caller) public {
         vm.assume(caller != address(timelock));
         vm.assume(caller != address(accessManager));
+        vm.assume(caller != BROADCASTER);
 
         address[] memory targets = new address[](1);
         targets[0] = address(pufferDepositor);
