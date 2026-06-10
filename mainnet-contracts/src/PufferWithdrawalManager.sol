@@ -31,7 +31,7 @@ contract PufferWithdrawalManager is
         0xa4e2950800ad48b89d951842a006c666c0b29f755b9face41cad0b8d83328900;
 
     /**
-     * @notice The batch size for the withdrawal manager
+     * @notice The PufferVault contract
      */
     PufferVaultV5 public immutable PUFFER_VAULT;
     /**
@@ -68,7 +68,7 @@ contract PufferWithdrawalManager is
     modifier oneWithdrawalRequestAllowed() virtual {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            // If the deposit tracker location is set to `1`, revert with `MultipleWithdrawalsAreForbidden()`
+            // If the withdrawal request tracker location is set to `1`, revert with `MultipleWithdrawalsAreForbidden()`
             if tload(_WITHDRAWAL_REQUEST_TRACKER_LOCATION) {
                 mstore(0x00, 0x0eca04b2) // Store the error signature `0x0eca04b2` for `error MultipleWithdrawalsAreForbidden()` in memory.
                 revert(0x1c, 0x04) // Revert by returning those 4 bytes. `revert MultipleWithdrawalsAreForbidden()`
@@ -76,7 +76,7 @@ contract PufferWithdrawalManager is
         }
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            tstore(_WITHDRAWAL_REQUEST_TRACKER_LOCATION, 1) // Store `1` in the deposit tracker location
+            tstore(_WITHDRAWAL_REQUEST_TRACKER_LOCATION, 1) // Store `1` in the withdrawal request tracker location
         }
         _;
     }

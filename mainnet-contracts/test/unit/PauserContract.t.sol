@@ -13,6 +13,7 @@ import { PufferDeployment } from "src/structs/PufferDeployment.sol";
 import { DeployPufETH } from "script/DeployPufETH.s.sol";
 import { UUPSUpgradeable } from "@openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { ROLE_ID_PAUSER } from "script/Roles.sol";
+import { InvalidAddress } from "src/Errors.sol";
 
 contract PauserContractTest is Test {
     PufferDepositor public pufferDepositor;
@@ -50,6 +51,11 @@ contract PauserContractTest is Test {
         accessManager.setTargetFunctionRole(address(pauserContract), selectors, ROLE_ID_PAUSER);
         accessManager.grantRole(ROLE_ID_PAUSER, pauser, 0);
         vm.stopPrank();
+    }
+
+    function test_constructor_revertsIfTimelockIsZero() public {
+        vm.expectRevert(abi.encodeWithSelector(InvalidAddress.selector));
+        new PauserContract(address(accessManager), address(0));
     }
 
     function test_constructor_setsImmutables() public view {

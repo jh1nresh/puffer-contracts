@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import { AccessManaged } from "@openzeppelin/contracts/access/manager/AccessManaged.sol";
 import { Timelock } from "./Timelock.sol";
+import { InvalidAddress } from "./Errors.sol";
 
 /**
  * @title PauserContract
@@ -21,6 +22,7 @@ contract PauserContract is AccessManaged {
      * @param timelock The Timelock contract to forward pause actions to
      */
     constructor(address accessManager, address timelock) AccessManaged(accessManager) {
+        require(timelock != address(0), InvalidAddress());
         TIMELOCK = Timelock(timelock);
     }
 

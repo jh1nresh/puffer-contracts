@@ -237,7 +237,7 @@ contract ValidatorTicket is
 
     function _setGuardiansFeeRate(uint256 newGuardiansFeeRate) internal virtual {
         ValidatorTicket storage $ = _getValidatorTicketStorage();
-        // Treasury fee can not be bigger than 10%
+        // Guardians fee can not be bigger than 10%
         if (newGuardiansFeeRate > (_FEE_RATE_THRESHOLD_BPS)) {
             revert InvalidData();
         }
@@ -249,9 +249,6 @@ contract ValidatorTicket is
 
     /**
      * @dev Internal function to process the purchase of Validator Tickets with pufETH
-     * @notice The guardians' portion of pufETH fees is sent to the Operations Multisig since the
-     * GuardianModule cannot handle ERC20-compatible pufETH. This differs from ETH purchases where
-     * the guardians' portion goes directly to the GuardianModule.
      * @param recipient The address to receive the minted VTs
      * @param vtAmount The amount of Validator Tickets to purchase
      * @return pufEthUsed The amount of pufETH used for the purchase
