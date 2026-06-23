@@ -4,6 +4,14 @@ pragma solidity >=0.8.0 <0.9.0;
 import { IEigenPod, BeaconChainProofs } from "./interface/Eigenlayer-Slashing/IEigenPod.sol";
 import { AccessManaged } from "@openzeppelin/contracts/access/manager/AccessManaged.sol";
 
+/**
+ * @title PUFFER Token
+ * @author Puffer Finance
+ * @dev This contract limits the functions from IEigenPod that can be called by the operations paymaster. It is intended to be used as a "proof submitter" for EigenPods,
+ *      allowing the operations paymaster to submit proofs on behalf of the pod owner.
+ *      This prevents the proof submitter to call other more critical functions like `requestWithdrawal()`.
+ * @custom:security-contact security@puffer.fi
+ */
 contract ProofSubmitter is AccessManaged {
     constructor(address initialAuthority) AccessManaged(initialAuthority) { }
 
