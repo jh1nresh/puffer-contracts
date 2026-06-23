@@ -16,7 +16,7 @@ uint64 constant ROLE_ID_REVENUE_DEPOSITOR = 26;
 uint64 constant ROLE_ID_PAUSER = 27;
 
 // Role assigned to validator ticket price setter
-uint64 constant ROLE_ID_VT_PRICER = 25;
+uint64 constant ROLE_ID_VT_PRICER = 125;
 
 // Role assigned to the Puffer Protocol
 uint64 constant ROLE_ID_PUFFER_PROTOCOL = 1234;

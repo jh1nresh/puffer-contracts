@@ -13,6 +13,7 @@ import { PufferDepositorStorage } from "./PufferDepositorStorage.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IPufferDepositorV2 } from "./interface/IPufferDepositorV2.sol";
 import { Permit } from "./structs/Permit.sol";
+import { InvalidAddress, TransferFailed } from "./Errors.sol";
 
 /**
  * @title PufferDepositorV2
@@ -20,7 +21,7 @@ import { Permit } from "./structs/Permit.sol";
  * @custom:security-contact security@puffer.fi
  */
 contract PufferDepositorV2 is IPufferDepositorV2, PufferDepositorStorage, AccessManagedUpgradeable, UUPSUpgradeable {
-    using SafeERC20 for address;
+    using SafeERC20 for IERC20;
 
     IStETH internal immutable _ST_ETH;
     IWstETH internal constant _WST_ETH = IWstETH(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
@@ -68,12 +69,16 @@ contract PufferDepositorV2 is IPufferDepositorV2, PufferDepositorStorage, Access
             r: permitData.r
         }) { } catch { }
 
-        SafeERC20.safeTransferFrom(IERC20(address(_WST_ETH)), msg.sender, address(this), permitData.amount);
+        IERC20(address(_WST_ETH)).safeTransferFrom(msg.sender, address(this), permitData.amount);
+
+        uint256 sharesBefore = _ST_ETH.sharesOf(address(this));
 
         _WST_ETH.unwrap(permitData.amount);
 
-        // The PufferDepositor is not supposed to hold any stETH, so we sharesOf(PufferDepositor) to the PufferVault immediately
-        return PUFFER_VAULT.depositStETH(_ST_ETH.sharesOf(address(this)), recipient);
+        uint256 sharesDelta = _ST_ETH.sharesOf(address(this)) - sharesBefore;
+
+        // Deposit shares transferred from the caller, ignore any shares that might be inside the contract previously
+        return PUFFER_VAULT.depositStETH(sharesDelta, recipient);
     }
 
     /**
@@ -94,11 +99,31 @@ contract PufferDepositorV2 is IPufferDepositorV2, PufferDepositorStorage, Access
             r: permitData.r
         }) { } catch { }
 
-        // Transfer stETH from user to this contract. The amount received here can be 1-2 wei lower than the actual permitData.amount
-        SafeERC20.safeTransferFrom(IERC20(address(_ST_ETH)), msg.sender, address(this), permitData.amount);
+        uint256 sharesBefore = _ST_ETH.sharesOf(address(this));
 
-        // The PufferDepositor is not supposed to hold any stETH, so we sharesOf(PufferDepositor) to the PufferVault immediately
-        return PUFFER_VAULT.depositStETH(_ST_ETH.sharesOf(address(this)), recipient);
+        // Transfer stETH from user to this contract. The amount received here can be 1-2 wei lower than the actual permitData.amount
+        IERC20(address(_ST_ETH)).safeTransferFrom(msg.sender, address(this), permitData.amount);
+
+        uint256 sharesDelta = _ST_ETH.sharesOf(address(this)) - sharesBefore;
+
+        // Deposit shares transferred from the caller, ignore any shares that might be inside the contract previously
+        return PUFFER_VAULT.depositStETH(sharesDelta, recipient);
+    }
+
+    /**
+     * @inheritdoc IPufferDepositorV2
+     * @dev restricted to the DAO
+     */
+    function rescueAnything(address token, address to, uint256 amount) external restricted {
+        require(to != address(0), InvalidAddress());
+        require(to != address(this), InvalidAddress());
+        emit Rescued(_msgSender(), token, to, amount);
+        if (token == address(0)) {
+            (bool ok,) = payable(to).call{ value: amount }("");
+            require(ok, TransferFailed());
+        } else {
+            IERC20(token).safeTransfer(to, amount);
+        }
     }
 
     /**
