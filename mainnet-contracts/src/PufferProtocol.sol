@@ -401,10 +401,13 @@ contract PufferProtocol is IPufferProtocol, AccessManagedUpgradeable, UUPSUpgrad
         });
 
         uint256 vtPenalty = $.vtPenalty;
+        uint96 vtBalance = $.nodeOperatorInfo[node].vtBalance;
+        // If the node operator has less VT than the penalty, we burn all of their VT
+        uint256 burnAmount = vtBalance < vtPenalty ? vtBalance : vtPenalty;
         // Burn VT penalty amount from the Node Operator
-        VALIDATOR_TICKET.burn(vtPenalty);
+        VALIDATOR_TICKET.burn(burnAmount);
         // nosemgrep basic-arithmetic-underflow
-        $.nodeOperatorInfo[node].vtBalance -= SafeCast.toUint96(vtPenalty);
+        $.nodeOperatorInfo[node].vtBalance -= SafeCast.toUint96(burnAmount);
         --$.nodeOperatorInfo[node].pendingValidatorCount;
 
         // Change the status of that validator

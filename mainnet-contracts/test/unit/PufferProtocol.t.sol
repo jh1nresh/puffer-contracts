@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import { PufferProtocolMockUpgrade } from "../mocks/PufferProtocolMockUpgrade.sol";
+import { PufferProtocolSetterMock } from "../mocks/PufferProtocolSetterMock.sol";
 import { UnitTestHelper } from "../helpers/UnitTestHelper.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { IPufferProtocol } from "../../src/interface/IPufferProtocol.sol";
@@ -1034,6 +1035,84 @@ contract PufferProtocolTest is UnitTestHelper {
         pufferProtocol.withdrawValidatorTickets(uint96(20 ether), alice);
 
         assertEq(validatorTicket.balanceOf(alice), 20 ether, "alice got her VT");
+    }
+
+    function test_register_skip_provision_less_vt_than_penalty() public {
+        PufferProtocolSetterMock newImplementation = new PufferProtocolSetterMock(
+            pufferProtocol.PUFFER_VAULT(),
+            pufferProtocol.GUARDIAN_MODULE(),
+            address(pufferProtocol.PUFFER_MODULE_MANAGER()),
+            pufferProtocol.VALIDATOR_TICKET(),
+            pufferProtocol.PUFFER_ORACLE(),
+            address(pufferProtocol.BEACON_DEPOSIT_CONTRACT())
+        );
+        pufferProtocol.upgradeToAndCall(address(newImplementation), "");
+
+        vm.deal(alice, 10 ether);
+
+        vm.startPrank(alice);
+        _registerValidatorKey(bytes32("alice"), PUFFER_MODULE_0);
+
+        assertApproxEqRel(
+            pufferProtocol.getValidatorTicketsBalance(alice), 30 ether, pointZeroZeroOne, "alice should have ~30 VTS"
+        );
+
+        PufferProtocolSetterMock(address(pufferProtocol)).setNodeVtBalance(alice, 5 ether);
+
+        assertApproxEqRel(
+            pufferProtocol.getValidatorTicketsBalance(alice), 5 ether, pointZeroZeroOne, "alice should have ~5 VTS"
+        );
+
+        vm.stopPrank();
+        vm.expectEmit(true, true, true, true);
+        emit IPufferProtocol.NumberOfRegisteredValidatorsChanged(PUFFER_MODULE_0, 0);
+        pufferProtocol.skipProvisioning(PUFFER_MODULE_0, _getGuardianSignaturesForSkipping());
+
+        assertApproxEqRel(
+            pufferProtocol.getValidatorTicketsBalance(alice),
+            0,
+            pointZeroZeroOne,
+            "alice should have ~0 VTS since penalty is greater than her balance"
+        );
+    }
+
+    function test_register_skip_provision_0_vt() public {
+        PufferProtocolSetterMock newImplementation = new PufferProtocolSetterMock(
+            pufferProtocol.PUFFER_VAULT(),
+            pufferProtocol.GUARDIAN_MODULE(),
+            address(pufferProtocol.PUFFER_MODULE_MANAGER()),
+            pufferProtocol.VALIDATOR_TICKET(),
+            pufferProtocol.PUFFER_ORACLE(),
+            address(pufferProtocol.BEACON_DEPOSIT_CONTRACT())
+        );
+        pufferProtocol.upgradeToAndCall(address(newImplementation), "");
+
+        vm.deal(alice, 10 ether);
+
+        vm.startPrank(alice);
+        _registerValidatorKey(bytes32("alice"), PUFFER_MODULE_0);
+
+        assertApproxEqRel(
+            pufferProtocol.getValidatorTicketsBalance(alice), 30 ether, pointZeroZeroOne, "alice should have ~30 VTS"
+        );
+
+        PufferProtocolSetterMock(address(pufferProtocol)).setNodeVtBalance(alice, 0);
+
+        assertApproxEqRel(
+            pufferProtocol.getValidatorTicketsBalance(alice), 0, pointZeroZeroOne, "alice should have ~0 VTS"
+        );
+
+        vm.stopPrank();
+        vm.expectEmit(true, true, true, true);
+        emit IPufferProtocol.NumberOfRegisteredValidatorsChanged(PUFFER_MODULE_0, 0);
+        pufferProtocol.skipProvisioning(PUFFER_MODULE_0, _getGuardianSignaturesForSkipping());
+
+        assertApproxEqRel(
+            pufferProtocol.getValidatorTicketsBalance(alice),
+            0,
+            pointZeroZeroOne,
+            "alice should have ~0 VTS since penalty is greater than her balance"
+        );
     }
 
     function test_setVTPenalty() public {
