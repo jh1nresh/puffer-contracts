@@ -788,6 +788,11 @@ contract PufferProtocolTest is UnitTestHelper {
         );
     }
 
+    function test_validator_limit_per_module_invalid_module() external {
+        vm.expectRevert(IPufferProtocol.ModuleDoesNotExist.selector);
+        pufferProtocol.setValidatorLimitPerModule(bytes32("invalid_module"), 1);
+    }
+
     function test_claim_bond_for_single_withdrawal() external {
         uint256 startTimestamp = 1707411226;
 

@@ -671,6 +671,7 @@ contract PufferProtocol is IPufferProtocol, AccessManagedUpgradeable, UUPSUpgrad
 
     function _setValidatorLimitPerModule(bytes32 moduleName, uint128 limit) internal {
         ProtocolStorage storage $ = _getPufferProtocolStorage();
+        require(address($.modules[moduleName]) != address(0), ModuleDoesNotExist());
         if (limit < $.moduleLimits[moduleName].numberOfRegisteredValidators) {
             revert ValidatorLimitForModuleReached();
         }

@@ -45,6 +45,12 @@ interface IPufferProtocol {
     error ModuleAlreadyExists();
 
     /**
+     * @notice Thrown when the module does not exist when setting the module limit
+     * @dev Signature "0x0286c71d"
+     */
+    error ModuleDoesNotExist();
+
+    /**
      * @notice Thrown when the new validators tires to register to a module, but the validator limit for that module is already reached
      * @dev Signature "0xb75c5781"
      */
