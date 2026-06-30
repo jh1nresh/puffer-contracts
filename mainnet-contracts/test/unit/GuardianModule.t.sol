@@ -140,6 +140,51 @@ contract GuardianModuleTest is UnitTestHelper {
         guardianModule.removeGuardian(guardian);
     }
 
+    function test_removeGuardian_check_enclave_removed() public {
+        bytes32 workloadId = keccak256("allowed_workload");
+        vm.startPrank(DAO);
+        guardianModule.addGuardian(newGuardian);
+        guardianModule.setAllowedWorkload(workloadId, true);
+        vm.stopPrank();
+
+        bytes32 signedMessageHash =
+            keccak256(abi.encode("ROTATE_GUARDIAN_KEY", address(guardianModule), block.chainid, 0, newEnclavePubKey));
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(newSKEnclave, signedMessageHash);
+        bytes memory signature = abi.encodePacked(r, s, v); // note the order here is different from line above.
+
+        sessionRegistryMock.setSessionOwner(
+            newGuardianSessionId, LibKey.computeKeyFingerprint(newGuardianOwnerPublicIdentity)
+        );
+
+        sessionRegistryMock.setSessionWorkload(newGuardianSessionId, workloadId);
+
+        vm.expectEmit(true, true, true, true);
+        emit IGuardianModule.RotatedGuardianKey(newGuardian, vm.addr(newSKEnclave), newEnclavePubKey);
+        guardianModule.rotateGuardianKey(
+            0,
+            newEnclavePubKey,
+            GuardianSessionProof({
+                sessionId: newGuardianSessionId,
+                sessionKey: newGuardianSessionPublicIdentity,
+                ownerKey: newGuardianOwnerPublicIdentity,
+                signature: signature
+            })
+        );
+
+        assertEq(guardianModule.getGuardiansEnclaveAddress(newGuardian), vm.addr(newSKEnclave), "bad enclave address");
+
+        vm.startPrank(DAO);
+        vm.expectEmit(true, true, true, true);
+        emit IGuardianModule.GuardianRemoved(newGuardian);
+        guardianModule.removeGuardian(newGuardian);
+        vm.stopPrank();
+
+        assertEq(
+            guardianModule.getGuardiansEnclaveAddress(newGuardian), address(0), "enclave address should be cleared"
+        );
+    }
+
     function test_remove_guardian_below_threshold() public {
         // Our test env has 3 guardians and threshold 1
 

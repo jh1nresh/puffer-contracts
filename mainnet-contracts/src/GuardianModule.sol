@@ -307,6 +307,8 @@ contract GuardianModule is AccessManaged, IGuardianModule {
             emit GuardianRemoved(guardian);
         }
 
+        delete _guardianEnclaves[guardian];
+
         if (_guardians.length() < _threshold) {
             revert InvalidThreshold(_threshold);
         }
