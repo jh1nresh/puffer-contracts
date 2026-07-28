@@ -39,6 +39,7 @@ contract PufferDepositorV2 is IPufferDepositorV2, PufferDepositorStorage, Access
     constructor(PufferVaultV5 pufferVault, IStETH stETH) payable {
         PUFFER_VAULT = pufferVault;
         _ST_ETH = stETH;
+        _disableInitializers();
     }
 
     /**
