@@ -89,23 +89,5 @@ library LibGuardianMessages {
         return keccak256(abi.encode(verifyingContract, block.chainid, numberOfValidators, epochNumber))
             .toEthSignedMessageHash();
     }
-
-    /**
-     * @notice Returns the message to be signed for the no restaking module rewards root
-     * @param verifyingContract is the address of the contract that will verify the signature
-     * @param moduleName is the name of the module
-     * @param root is the root of the no restaking module rewards
-     * @param blockNumber is the block number of the no restaking module rewards
-     * @return the message to be signed
-     */
-    function _getModuleRewardsRootMessage(
-        address verifyingContract,
-        bytes32 moduleName,
-        bytes32 root,
-        uint256 blockNumber
-    ) internal view returns (bytes32) {
-        return keccak256(abi.encode(verifyingContract, block.chainid, moduleName, root, blockNumber))
-            .toEthSignedMessageHash();
-    }
 }
 /* solhint-disable func-named-parameters */
