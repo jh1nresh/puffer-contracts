@@ -15,6 +15,7 @@ import {
     ROLE_ID_OPERATIONS_PAYMASTER,
     ROLE_ID_L1_REWARD_MANAGER,
     ROLE_ID_VAULT_WITHDRAWER,
+    ROLE_ID_REWARDS_MINTER,
     PUBLIC_ROLE
 } from "../../script/Roles.sol";
 
@@ -42,7 +43,7 @@ contract GenerateRewardManagerCalldata is Script {
             AccessManager.setTargetFunctionRole.selector,
             l1RewardManagerProxy,
             paymasterSelectors,
-            ROLE_ID_OPERATIONS_PAYMASTER
+            ROLE_ID_REWARDS_MINTER
         );
 
         bytes4[] memory bridgeSelectors = new bytes4[](1);

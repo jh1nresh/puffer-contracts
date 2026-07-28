@@ -91,7 +91,7 @@ contract L1RewardManager is
 
     /**
      * @notice Mints pufETH, locks into the pufETHAdapter and bridges it to the L2RewardManager contract on L2 according to the provided parameters.
-     * @dev Restricted access to `ROLE_ID_OPERATIONS_PAYMASTER`
+     * @dev Restricted access to `ROLE_ID_REWARDS_MINTER`
      *
      * The oft must be allowlisted in the contract and the amount must be less than the allowed mint amount.
      * The minting can be done at most once per allowed frequency.

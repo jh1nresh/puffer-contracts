@@ -17,7 +17,8 @@ import {
     ROLE_ID_BRIDGE,
     ROLE_ID_L1_REWARD_MANAGER,
     ROLE_ID_OPERATIONS_PAYMASTER,
-    ROLE_ID_VAULT_WITHDRAWER
+    ROLE_ID_VAULT_WITHDRAWER,
+    ROLE_ID_REWARDS_MINTER
 } from "../../script/Roles.sol";
 import { InvalidAddress, Unauthorized } from "mainnet-contracts/src/Errors.sol";
 import { GenerateRewardManagerCalldata } from
@@ -149,6 +150,7 @@ contract L1RewardManagerTest is UnitTestHelper, TestHelperOz5 {
             address(pufferModuleManager), paymasterSelectors, ROLE_ID_OPERATIONS_PAYMASTER
         );
         accessManager.grantRole(ROLE_ID_OPERATIONS_PAYMASTER, address(this), 0);
+        accessManager.grantRole(ROLE_ID_REWARDS_MINTER, address(this), 0);
 
         bytes4[] memory pmmSelectors = new bytes4[](1);
         pmmSelectors[0] = PufferVaultV5.depositRewards.selector;
