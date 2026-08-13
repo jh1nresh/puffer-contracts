@@ -7,4 +7,4 @@
 [submodule "mainnet-contracts/lib/automata-tee-workload-measurement"]
 	path = mainnet-contracts/lib/automata-tee-workload-measurement
 	url = https://github.com/automata-network/automata-tee-workload-measurement
-    branch = develop
+	# pinned to tag nm-0985-final-audited (101d828); do not run `git submodule update --remote`

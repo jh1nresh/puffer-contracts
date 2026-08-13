@@ -21,7 +21,7 @@ contract SessionRegistryMock {
             platformProfileId: bytes32(0), // Platform profile identifier
             measurementVariantId: bytes32(0), // Measurement variant identifier
             registeredAt: 0, // Registration timestamp
-            expiresAt: 0 // Expiration timestamp
+            sessionExpiresAt: 0 // Absolute session expiration timestamp
          });
     }
 
